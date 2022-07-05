@@ -1,33 +1,33 @@
 import React, { Component, Suspense, lazy } from "react";
 import { Switch, Route, Redirect } from "react-router-dom";
 
-import Spinner from "../app/shared/Spinner";
+import Spinner from "./components/shared/Spinner.js";
 
-const Dashboard = lazy(() => import("./dashboard/Dashboard"));
+const Dashboard = lazy(() => import("./app/dashboard/Dashboard"));
 
-const Buttons = lazy(() => import("./basic-ui/Buttons"));
-const Dropdowns = lazy(() => import("./basic-ui/Dropdowns"));
-const Typography = lazy(() => import("./basic-ui/Typography"));
+const Buttons = lazy(() => import("./app/basic-ui/Buttons"));
+const Dropdowns = lazy(() => import("./app/basic-ui/Dropdowns"));
+const Typography = lazy(() => import("./app/basic-ui/Typography"));
 
-const BasicElements = lazy(() => import("./form-elements/BasicElements"));
+const BasicElements = lazy(() => import("./app/form-elements/BasicElements"));
 
 const CompanyRegistrationForm = lazy(() =>
-    import("./form-elements/CompanyRegistrationForm")
+    import("./app/form-elements/CompanyRegistrationForm")
 );
 
-const BasicTable = lazy(() => import("./tables/BasicTable"));
+const BasicTable = lazy(() => import("./app/tables/BasicTable"));
 
-const StudentTable = lazy(() => import("./tables/StudentTable"));
+const StudentTable = lazy(() => import("./app/tables/StudentTable"));
 
-const Mdi = lazy(() => import("./icons/Mdi"));
+const Mdi = lazy(() => import("./app/icons/Mdi"));
 
-const ChartJs = lazy(() => import("./charts/ChartJs"));
+const ChartJs = lazy(() => import("./app/charts/ChartJs"));
 
-const Error404 = lazy(() => import("./error-pages/Error404"));
-const Error500 = lazy(() => import("./error-pages/Error500"));
+const Error404 = lazy(() => import("./app/error-pages/Error404"));
+const Error500 = lazy(() => import("./app/error-pages/Error500"));
 
-const Login = lazy(() => import("./user-pages/Login"));
-const Register1 = lazy(() => import("./user-pages/Register"));
+const Login = lazy(() => import("./app/user-pages/Login"));
+const Register1 = lazy(() => import("./app/user-pages/Register"));
 
 class AppRoutes extends Component {
     render() {
@@ -57,6 +57,16 @@ class AppRoutes extends Component {
 
                     <Route path="/error-pages/error-404" component={Error404} />
                     <Route path="/error-pages/error-500" component={Error500} />
+
+                    {/* student */}
+                    <Route path="/jobs/job-openings" component={BasicTable} />
+                    <Route path="/jobs/pending-applications" component={BasicTable} />
+                    <Route path="/offers" component={BasicTable} />
+                    <Route path="/student/feedback" component={BasicElements} />
+                    <Route path="/profile" component={Dashboard} />
+
+
+                    {/* student */}
 
                     {/* admin */}
                     <Route exact path="/admin-home" component={Dashboard} />
