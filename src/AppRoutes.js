@@ -26,14 +26,23 @@ const ChartJs = lazy(() => import("./app/charts/ChartJs"));
 const Error404 = lazy(() => import("./app/error-pages/Error404"));
 const Error500 = lazy(() => import("./app/error-pages/Error500"));
 
-const Login = lazy(() => import("./app/user-pages/Login"));
-const Register = lazy(() => import("./app/user-pages/Register"));
+const Login = lazy(() => import("./components/user-pages/Login"));
+const Register = lazy(() => import("./components/user-pages/Register"));
+
+const Student = lazy(() => import ("./components/StudentMain"));
+
+const Admin = lazy(() => import("./components/AdminMain"));
+const Company = lazy(() => import("./components/CompanyMain"));
 
 export function AppRoutes () {
         return (
             <Suspense fallback={<Spinner />}>
                 <Switch>
                     <Route exact path="/dashboard" component={Dashboard} />
+                    
+                    <Route exact path="/company" component={Company} />
+                    <Route exact path="/admin" component={Admin} />
+                    <Route exact path="/student" component={Student} />
 
                     <Route path="/basic-ui/buttons" component={Buttons} />
                     <Route path="/basic-ui/dropdowns" component={Dropdowns} />

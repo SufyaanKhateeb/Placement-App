@@ -3,7 +3,7 @@ import { withRouter } from "react-router-dom";
 import "./App.scss";
 
 import { withTranslation } from "react-i18next";
-import Login from "./app/user-pages/Login";
+import Login from "./components/user-pages/Login";
 
 import AdminMain from "./components/AdminMain";
 import StudentMain from "./components/StudentMain";

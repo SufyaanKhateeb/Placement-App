@@ -5,7 +5,6 @@ import { ToastContainer, toast } from "react-toastify";
 import axios from "axios";
 
 
-
 export default function Register() {  
   const history = useHistory();
 
@@ -13,7 +12,7 @@ export default function Register() {
   // const navigate = useNavigate();
   useEffect(() => {
     if (cookies.jwt) {
-     history.push('/dashboard')
+     history.push('/student')
     }
   }, [cookies, history]);
 
@@ -62,7 +61,7 @@ export default function Register() {
             else if (password) generateError(password);
           } else {
             console.log("Logging in");
-            history.push('/dashboard');
+            history.push('/student');
           }
         }
         // console.log(data);
