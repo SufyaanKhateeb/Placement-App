@@ -3,7 +3,7 @@ import { Link, withRouter } from 'react-router-dom';
 import { Collapse, Dropdown } from 'react-bootstrap';
 import { Trans } from 'react-i18next';
 
-class Sidebar extends Component {
+class CompanySidebar extends Component {
 
   state = {};
 
@@ -138,7 +138,7 @@ class Sidebar extends Component {
           <li className={ this.isPathActive('/tables/student-table') ? 'nav-item menu-items active' : 'nav-item menu-items' }>
             <Link className="nav-link" to="/tables/student-table">
               <span className="menu-icon"><i className="mdi mdi-account-multiple"></i></span>
-              <span className="menu-title"><Trans>Students</Trans></span>
+              <span className="menu-title"><Trans>Me am company</Trans></span>
             </Link>
           </li>
           <li className={ this.isPathActive('/tables/company-table') ? 'nav-item menu-items active' : 'nav-item menu-items' }>
@@ -336,4 +336,4 @@ class Sidebar extends Component {
 
 }
 
-export default withRouter(Sidebar);
+export default withRouter(CompanySidebar);
