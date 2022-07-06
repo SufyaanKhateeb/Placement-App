@@ -1,21 +1,25 @@
-import React, { Component } from 'react';
+import React, { useEffect } from 'react';
 import { Doughnut } from 'react-chartjs-2';
+import { useCookies } from 'react-cookie'
+import { useHistory } from 'react-router-dom'
 import Slider from "react-slick";
 import { TodoListComponent } from '../apps/TodoList'
 import { VectorMap } from "react-jvectormap"
+import axios from 'axios'
+import { ToastContainer, toast } from 'react-toastify';
 
-const mapData = {
-  "BZ": 75.00,
-  "US": 56.25,
-  "AU": 15.45,
-  "GB": 25.00,
-  "RO": 10.25,
-  "GE": 33.25
-}
 
-export class Dashboard extends Component {
+export default function Dashboard() {
+  const mapData = {
+    "BZ": 75.00,
+    "US": 56.25,
+    "AU": 15.45,
+    "GB": 25.00,
+    "RO": 10.25,
+    "GE": 33.25
+  }
 
-  transactionHistoryData =  {
+  var transactionHistoryData =  {
     labels: ["Paypal", "Stripe","Cash"],
     datasets: [{
         data: [55, 25, 20],
@@ -26,7 +30,7 @@ export class Dashboard extends Component {
     ]
   };
 
-  transactionHistoryOptions = {
+  var transactionHistoryOptions = {
     responsive: true,
     maintainAspectRatio: true,
     segmentShowStroke: false,
@@ -44,7 +48,7 @@ export class Dashboard extends Component {
     }
   }
 
-  sliderSettings = {
+  var sliderSettings = {
     infinite: true,
     speed: 500,
     slidesToShow: 1,
@@ -53,7 +57,40 @@ export class Dashboard extends Component {
   // toggleProBanner() {
   //   document.querySelector('.proBanner').classList.toggle("hide");
   // }
-  render () {
+
+
+  const history = useHistory();
+  const [cookies, setCookie, removeCookie] = useCookies([]);
+  useEffect(() => {
+    const verifyUser = async () => {
+      if (!cookies.jwt) {
+        history.push("/login");
+      } else {
+        const { data } = await axios.post(
+          "http://localhost:4000/admin",
+          {},
+          {
+            withCredentials: true,
+          }
+        );
+        if (!data.status) {
+          removeCookie("jwt");
+          history.push("/login");
+        } else
+          toast(`Hi ${data.user}`, {
+            // theme: "dark",
+          });
+      }
+    };
+    verifyUser();
+  }, [cookies, history, removeCookie]);
+
+  const logOut = () => {
+    removeCookie("jwt");
+    history.push("/login");
+  };
+
+  
     return (
       <div>
         {/* <div className="proBanner">
@@ -173,7 +210,7 @@ export class Dashboard extends Component {
               <div className="card-body">
                 <h4 className="card-title">Transaction History</h4>
                 <div className="aligner-wrapper">
-                  <Doughnut data={this.transactionHistoryData} options={this.transactionHistoryOptions} />
+                  <Doughnut data={transactionHistoryData} options={transactionHistoryOptions} />
                   <div className="absolute center-content">
                     <h5 className="font-weight-normal text-whiite text-center mb-2 text-white">1200</h5>
                     <p className="text-small text-muted text-center mb-0">Total</p>
@@ -588,7 +625,7 @@ export class Dashboard extends Component {
             <div className="card">
               <div className="card-body">
                 <h4 className="card-title">Portfolio Slide</h4>
-                <Slider className="portfolio-slider" {...this.sliderSettings}>
+                <Slider className="portfolio-slider" {...sliderSettings}>
                   <div className="item">
                     <img src={require('../../assets/images/dashboard/Rectangle.jpg')} alt="carousel-item" />
                   </div>
@@ -725,6 +762,5 @@ export class Dashboard extends Component {
       </div> 
     );
   }
-}
 
-export default Dashboard;
+// export default Dashboard;
