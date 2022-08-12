@@ -16,6 +16,7 @@ module.exports.checkStudent = (req, res, next) => {
                     next();
                 } else {
                     const user = await Student.findById(decodedToken.id);
+                    console.log(user);
                     if (user) res.json({ status: true, user: user.USN });
                     else res.json({ status: false });
                     next();

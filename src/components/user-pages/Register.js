@@ -61,7 +61,7 @@ export default function Register() {
             else if (password) generateError(password);
           } else {
             console.log("Logging in");
-            history.push('/student');
+            history.push('/student/profile');
           }
         }
         // console.log(data);

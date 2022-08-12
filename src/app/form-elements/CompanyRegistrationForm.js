@@ -126,7 +126,7 @@ export class CompanyRegistrationForm extends Component {
                                                         Instrumentation
                                                     </option>
                                                     <option selected>
-                                                        Information Science and
+                                                        s Science and
                                                         Engineering
                                                     </option>
                                                     <option>

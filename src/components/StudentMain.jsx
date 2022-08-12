@@ -13,7 +13,7 @@ import { useCookies } from 'react-cookie'
 import { ToastContainer, toast } from "react-toastify";
 import axios from "axios";
 
-const AdminMain = (props) => {
+const StudentMain = (props) => {
 
     const history = useHistory();
     const [cookies, setCookie, removeCookie] = useCookies([]);
@@ -22,6 +22,7 @@ const AdminMain = (props) => {
             if (!cookies.jwt) {
                 history.push("/login");
             } else {
+                
                 const { data } = await axios.post(
                     "http://localhost:4000/student",
                     {},
@@ -29,6 +30,7 @@ const AdminMain = (props) => {
                         withCredentials: true,
                     }
                 );
+                console.log(data);
                 if (!data.status) {
                     removeCookie("jwt");
                     history.push("/login");
@@ -66,4 +68,4 @@ const AdminMain = (props) => {
     );
 };
 
-export default AdminMain;
+export default StudentMain;

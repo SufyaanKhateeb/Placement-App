@@ -2,6 +2,10 @@ import React, { Component } from 'react';
 import { Link, withRouter } from 'react-router-dom';
 import { Collapse, Dropdown } from 'react-bootstrap';
 import { Trans } from 'react-i18next';
+import { connect } from 'react-redux'
+import axios from "axios";
+import { userActions } from '../../store/user-slice';
+
 
 class StudentSidebar extends Component {
 
@@ -36,7 +40,7 @@ class StudentSidebar extends Component {
       {path:'/apps', state: 'appsMenuOpen'},
       {path:'/basic-ui', state: 'basicUiMenuOpen'},
       {path:'/form-elements', state: 'formElementsMenuOpen'},
-      {path:'/jobs', state: 'jobMenuOpen'},
+      {path:'/student/jobs', state: 'jobMenuOpen'},
       {path:'/tables', state: 'tablesMenuOpen'},
       {path:'/icons', state: 'iconsMenuOpen'},
       {path:'/charts', state: 'chartsMenuOpen'},
@@ -53,6 +57,7 @@ class StudentSidebar extends Component {
   }
 
   render () {
+    // console.log(this.props.userObj)
     return (
       <nav className="sidebar sidebar-offcanvas" id="sidebar">
         <div className="sidebar-brand-wrapper d-none d-lg-flex align-items-center justify-content-center fixed-top">
@@ -75,12 +80,12 @@ class StudentSidebar extends Component {
             <div className="profile-desc">
               <div className="profile-pic">
                 <div className="count-indicator">
-                  <img className="img-xs rounded-circle " src={require('../../assets/images/faces/facePawan.jpeg')} alt="profile" />
+                  <img className="img-xs rounded-circle " src={require('../../assets/images/faces/face1.jpg')} alt="profile" />
                   {/* <span className="count bg-success"></span> */}
                 </div>
                 <div className="profile-name">
-                  <h5 className="mb-0 font-weight-normal"><Trans>Pawan Kumar</Trans></h5>
-                  <span><Trans>Admin</Trans></span>
+                  <h5 className="mb-0 font-weight-normal">{this.props.userObj.name}</h5>
+                  <span><Trans>{this.props.userType}</Trans></span>
                 </div>
               </div>
               {/* <Dropdown alignRight>
@@ -130,31 +135,39 @@ class StudentSidebar extends Component {
             {/* <span className="nav-link"><Trans>Navigation</Trans></span> */}
           {/* </li> */}
 
-          <li className={ this.isPathActive('/admin-home') ? 'nav-item menu-items active' : 'nav-item menu-items' }>
-            <Link className="nav-link" to="/admin-home">
+          {/* <li className={ this.isPathActive('/student-home') ? 'nav-item menu-items active' : 'nav-item menu-items' }>
+            <Link className="nav-link" to="/student-home">
               <span className="menu-icon"><i className="mdi mdi-home-variant"></i></span>
               <span className="menu-title"><Trans>Home</Trans></span>
             </Link>
-          </li>
-          <li className={ this.isPathActive('/profile') ? 'nav-item menu-items active' : 'nav-item menu-items' }>
-            <Link className="nav-link" to="/profile">
-              <span className="menu-icon"><i className="mdi mdi-account-box"></i></span>
-              <span className="menu-title"><Trans>Profile</Trans></span>
+          </li> */}
+
+          <li className={this.isPathActive('/student-register') ? 'nav-item menu-items active' : 'nav-item menu-items'}>
+            <Link className="nav-link" to="/student-register">
+              <span className="menu-icon"><i className="mdi mdi-home-variant"></i></span>
+              <span className="menu-title"><Trans>Register</Trans></span>
             </Link>
           </li>
-          <li className={ this.isPathActive('/student/feedback') ? 'nav-item menu-items active' : 'nav-item menu-items' }>
+
+          <li className={ this.isPathActive('/student/profile') ? 'nav-item menu-items active' : 'nav-item menu-items' }>
+            <Link className="nav-link" to="/student/profile">
+              <span className="menu-icon"><i className="mdi mdi-account-box"></i></span>
+              <span className="menu-title"><Trans>Placement Stats</Trans></span>
+            </Link>
+          </li>
+          {this.props.isVerified && <li className={ this.isPathActive('/student/feedback') ? 'nav-item menu-items active' : 'nav-item menu-items' }>
             <Link className="nav-link" to="/student/feedback">
               <span className="menu-icon"><i className="mdi mdi-clipboard-text"></i></span>
               <span className="menu-title"><Trans>Feedback</Trans></span>
             </Link>
-          </li>
-          <li className={ this.isPathActive('/offers') ? 'nav-item menu-items active' : 'nav-item menu-items' }>
-            <Link className="nav-link" to="/offers">
+          </li>}
+          {/* {this.props.isVerified && <li className={ this.isPathActive('/student/offers') ? 'nav-item menu-items active' : 'nav-item menu-items' }>
+            <Link className="nav-link" to="/student/offers">
               <span className="menu-icon"><i className="mdi mdi-library-books"></i></span>
               <span className="menu-title"><Trans>Offers</Trans></span>
             </Link>
-          </li>
-          <li className={ this.isPathActive('/jobs') ? 'nav-item menu-items active' : 'nav-item menu-items' }>
+          </li>} */}
+          {this.props.isVerified && <li className={ this.isPathActive('/student/jobs') ? 'nav-item menu-items active' : 'nav-item menu-items' }>
             <div className={ this.state.jobMenuOpen ? 'nav-link menu-expanded' : 'nav-link' } onClick={ () => this.toggleMenuState('jobMenuOpen') } data-toggle="collapse">
               <span className="menu-icon">
                 <i className="mdi mdi-playlist-play"></i>
@@ -165,19 +178,24 @@ class StudentSidebar extends Component {
             <Collapse in={ this.state.jobMenuOpen }>
               <div>
                 <ul className="nav flex-column sub-menu">
-                  <li className="nav-item"> <Link className={ this.isPathActive("/jobs/job-openings") ? 'nav-link active' : 'nav-link' } to="/jobs/job-openings"><Trans>Job openings</Trans></Link></li>
-                  <li className="nav-item"> <Link className={ this.isPathActive("/jobs/pending-applications") ? 'nav-link active' : 'nav-link' } to="/jobs/pending-applications"><Trans>Pending Applications</Trans></Link></li>
+                  <li className="nav-item"> <Link className={ this.isPathActive("/student/jobs/job-openings") ? 'nav-link active' : 'nav-link' } to="/student/jobs/job-openings"><Trans>Job openings</Trans></Link></li>
+                  <li className="nav-item"> <Link className={ this.isPathActive("/student/jobs/pending-applications") ? 'nav-link active' : 'nav-link' } to="/student/jobs/pending-applications"><Trans>Pending Applications</Trans></Link></li>
                 </ul>
               </div>
             </Collapse>
-          </li>
-          <li className={ this.isPathActive('/stats') ? 'nav-item menu-items active' : 'nav-item menu-items' }>
-            <Link className="nav-link" to="/stats">
+          </li>}
+          {/* {this.props.isVerified && <li className={ this.isPathActive('/student/stats') ? 'nav-item menu-items active' : 'nav-item menu-items' }>
+            <Link className="nav-link" to="/student/stats">
               <span className="menu-icon"><i className="mdi mdi-speedometer"></i></span>
               <span className="menu-title"><Trans>Placement statistics</Trans></span>
             </Link>
-          </li>
-
+          </li>} */}
+          {!this.props.isVerified && <li className='nav-item menu-items'>
+            <div className="nav-link" to="/student/stats" style={{whiteSpace: 'normal'}}>
+              <span className="menu-icon"><i className="mdi mdi-information-outline"></i></span>
+              <span className="menu-title">Please wait for verfication</span>
+            </div>
+          </li>}
           {/* <li className={ this.isPathActive('/dashboard') ? 'nav-item menu-items active' : 'nav-item menu-items' }>
             <Link className="nav-link" to="/dashboard">
               <span className="menu-icon"><i className="mdi mdi-speedometer"></i></span>
@@ -317,7 +335,8 @@ class StudentSidebar extends Component {
   }
 
   isPathActive(path) {
-    return this.props.location.pathname.startsWith(path);
+    return this.props.location.pathname === path;
+    // console.log(this.props.location.pathname)
   }
 
   componentDidMount() {
@@ -341,4 +360,22 @@ class StudentSidebar extends Component {
 
 }
 
-export default withRouter(StudentSidebar);
+const mapStateToProps = (state) => {
+    return {
+        userType: state.user.userType,
+        userObj: state.user.userObj,
+        isVerified: state.user.isVerified
+    };
+};
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    setUserObj: () => dispatch(userActions)
+  };
+    // return {
+    //     increment: () => dispatch({ type: "increment" }),
+    //     decrement: () => dispatch({ type: "decrement" }),
+    // };
+};
+
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(StudentSidebar));

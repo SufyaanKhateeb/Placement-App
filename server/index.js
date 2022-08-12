@@ -3,6 +3,8 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const authRoutes = require("./Router/authRoutes");
 const cookieParser = require("cookie-parser");
+const { MongoClient, ServerApiVersion } = require('mongodb');
+
 
 const app = express();
 
@@ -14,17 +16,21 @@ app.listen(4000, (err) => {
     }
 });
 
-mongoose
-    .connect("mongodb://localhost:27017/LoginPlacement", {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+const uri = "mongodb+srv://pawan03:ch3coo-k+@cluster0.tkqqzlx.mongodb.net/?retryWrites=true&w=majority";
+
+const connectionParams = {
+    useNewUrlParser: true,
+    // useCreateIndex: true,
+    useUnifiedTopology: true
+}
+
+mongoose.connect(uri, connectionParams)
     .then(() => {
-        console.log("DB Connection Successfull");
+        console.log('Connected to the database ')
     })
     .catch((err) => {
-        console.log(err.message);
-    });
+        console.error(`Error connecting to the database. n${err}`);
+    })
 
 app.use(
     cors({

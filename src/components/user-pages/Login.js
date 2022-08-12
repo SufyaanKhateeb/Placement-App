@@ -4,9 +4,20 @@ import { Form } from 'react-bootstrap';
 import { useCookies } from 'react-cookie'
 import { ToastContainer, toast } from "react-toastify";
 import axios from "axios";
+import {useSelector, useDispatch} from "react-redux";
+import { userActions } from '../../store/user-slice';
 
 export default function Login (){
 
+
+  const userRedux = useSelector((state)=>{
+  
+    return state.user;
+  })
+  
+  console.log(userRedux);
+
+  const dispatch = useDispatch();
   const [values, setValues] = useState({ userType: "student", ID: "", password: "" });
   const [id, setid] = useState("USN");  
 
@@ -15,12 +26,12 @@ export default function Login (){
 
   useEffect(() => {
     if (cookies.jwt) {
-      if (id === "USN")
-        history.push('/dashboard')
-      else if (id === "Admin ID")
-        history.push('/dashboard')
+      if (userRedux.userType === "student")
+        history.push('/student/profile')
+      else if (userRedux.userType === "admin")
+        history.push('/admin-home')
       else
-        history.push('/dashboard')
+        history.push('/company/home')
     }
   }, [cookies, id, history]);
 
@@ -28,7 +39,7 @@ export default function Login (){
 
   function handleChange(e) {
     setValues({ ...values, [e.target.name]: e.target.value });
-    console.log(values);
+    // console.log(values);
   }
 
   const generateError = (error) =>
@@ -49,6 +60,12 @@ export default function Login (){
           'Content-Type': 'application/json'
         }
       });
+      console.log((data));
+      dispatch(userActions.setUserObj(data));
+      localStorage.setItem('localUser',JSON.stringify({
+        usn: data.USN,
+        password: data.password
+      }));
       if (data) {
         if (data.errors) {
           console.log(data.errors);
@@ -58,12 +75,12 @@ export default function Login (){
         } 
         else {
           console.log("Data reached here");
-          if (id === "USN")
-            history.push('/dashboard')
-          else if (id === "Admin ID")
-            history.push('/dashboard')
+          if (userRedux.userType === "student")
+            history.push('/student/profile')
+          else if (userRedux.userType === "admin")
+            history.push('/admin-home')
           else
-            history.push('/dashboard')
+            history.push('/company/home')
         }
       }
       // console.log(data);
@@ -77,6 +94,7 @@ export default function Login (){
       <div>
         <div className="d-flex align-items-center auth px-0">
           <div className="row w-100 mx-0">
+          
             <div className="col-lg-4 mx-auto">
               <div className="card text-left py-5 px-4 px-sm-5">
                 <h4>Login</h4>
@@ -86,17 +104,21 @@ export default function Login (){
                   <button className="btn btn-sm font-weight-medium  mx-1 btn-inverse-primary" name="student" value="student"
                    onClick={(e) => {
                     setValues({ ...values, userType: e.target.name });
+                    
                     setid("USN");
                   }}>Student</button>
                   <button className="btn btn-md font-weight-medium mx-1 btn-inverse-danger" name="admin" value="admin"
                    onClick={(e) => {
                     setValues({ ...values, userType: e.target.name });
-                    setid("Admin ID");
+                    
+                     setid("Admin ID");
+                   
                   }} >Admin</button>
                   <button className="btn btn-md font-weight-medium  mx-1 btn-inverse-info" name="company" value="company"
                    onClick={(e) => {
-                    setValues({ ...values, userType: e.target.name });
-                    setid("Company ID");
+                    setValues({ ...values, userType: e.target.name });                     
+                     setid("CID");
+                   
                   }} >Company</button>
                   </div>
                 
@@ -111,7 +133,13 @@ export default function Login (){
                         handleChange(e)} />
                   </Form.Group>
                   <div className="mt-3">
-                    <button type="submit" className="btn btn-block btn-primary btn-lg font-weight-medium auth-form-btn" >SIGN IN</button>
+                    <button type="submit" className="btn btn-block btn-primary btn-lg font-weight-medium " 
+                      onClick={(e)=>{
+                        dispatch(userActions.login({
+                          userType: values.userType
+                        }));
+                      }}
+                     >SIGN IN</button>
                   </div>
                   <div className="my-2 d-flex justify-content-between align-items-center">
                     <div className="form-check">

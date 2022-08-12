@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Link, withRouter } from 'react-router-dom';
 import { Collapse, Dropdown } from 'react-bootstrap';
 import { Trans } from 'react-i18next';
+import { connect } from 'react-redux'
 
 class AdminSidebar extends Component {
 
@@ -35,6 +36,7 @@ class AdminSidebar extends Component {
     const dropdownPaths = [
       {path:'/apps', state: 'appsMenuOpen'},
       {path:'/basic-ui', state: 'basicUiMenuOpen'},
+      { path: '/basic-ui', state: 'basicUiMenuOpen' },
       {path:'/form-elements', state: 'formElementsMenuOpen'},
       {path:'/admin-roles', state: 'adminRolesMenuOpen'},
       {path:'/tables', state: 'tablesMenuOpen'},
@@ -75,12 +77,12 @@ class AdminSidebar extends Component {
             <div className="profile-desc">
               <div className="profile-pic">
                 <div className="count-indicator">
-                  <img className="img-xs rounded-circle " src={require('../../assets/images/faces/facePawan.jpeg')} alt="profile" />
+                  <img className="img-xs rounded-circle " src={require('../../assets/images/faces/face1.jpg')} alt="profile" />
                   {/* <span className="count bg-success"></span> */}
                 </div>
                 <div className="profile-name">
-                  <h5 className="mb-0 font-weight-normal"><Trans>Pawan Kumar</Trans></h5>
-                  <span><Trans>Admin</Trans></span>
+                  <h5 className="mb-0 font-weight-normal"><Trans>{this.props.userObj.name}</Trans></h5>
+                  <span><Trans>{this.props.userType}</Trans></span>
                 </div>
               </div>
               {/* <Dropdown alignRight>
@@ -130,24 +132,19 @@ class AdminSidebar extends Component {
             {/* <span className="nav-link"><Trans>Navigation</Trans></span> */}
           {/* </li> */}
 
-          <li className={ this.isPathActive('/admin-home') ? 'nav-item menu-items active' : 'nav-item menu-items' }>
+          {/* <li className={ this.isPathActive('/admin-home') ? 'nav-item menu-items active' : 'nav-item menu-items' }>
             <Link className="nav-link" to="/admin-home">
               <span className="menu-icon"><i className="mdi mdi-home-variant"></i></span>
               <span className="menu-title"><Trans>Home</Trans></span>
             </Link>
-          </li>
+          </li> */}
           <li className={ this.isPathActive('/tables/student-table') ? 'nav-item menu-items active' : 'nav-item menu-items' }>
             <Link className="nav-link" to="/tables/student-table">
               <span className="menu-icon"><i className="mdi mdi-account-multiple"></i></span>
               <span className="menu-title"><Trans>Students</Trans></span>
             </Link>
           </li>
-          <li className={ this.isPathActive('/tables/company-table') ? 'nav-item menu-items active' : 'nav-item menu-items' }>
-            <Link className="nav-link" to="/tables/company-table">
-              <span className="menu-icon"><i className="mdi mdi-factory"></i></span>
-              <span className="menu-title"><Trans>Companies/Recruiters</Trans></span>
-            </Link>
-          </li>
+          
           <li className={ this.isPathActive('/admin-roles') ? 'nav-item menu-items active' : 'nav-item menu-items' }>
             <div className={ this.state.adminRolesMenuOpen ? 'nav-link menu-expanded' : 'nav-link' } onClick={ () => this.toggleMenuState('adminRolesMenuOpen') } data-toggle="collapse">
               <span className="menu-icon">
@@ -160,6 +157,9 @@ class AdminSidebar extends Component {
               <div>
                 <ul className="nav flex-column sub-menu">
                   <li className="nav-item"> <Link className={ this.isPathActive('/admin-roles/register-company') ? 'nav-link active' : 'nav-link' } to="/admin-roles/register-company"><Trans>Register Company</Trans></Link></li>
+                </ul>
+                <ul className="nav flex-column sub-menu">
+                  <li className="nav-item"> <Link className={this.isPathActive('/admin-roles/job-post') ? 'nav-link active' : 'nav-link'} to="/admin-roles/job-post"><Trans>Job Post</Trans></Link></li>
                 </ul>
                 <ul className="nav flex-column sub-menu">
                   <li className="nav-item"> <Link className={ this.isPathActive('/admin-roles/student-verification') ? 'nav-link active' : 'nav-link' } to="/admin-roles/student-verification"><Trans>Student Verification</Trans></Link></li>
@@ -337,4 +337,18 @@ class AdminSidebar extends Component {
 
 }
 
-export default withRouter(AdminSidebar);
+const mapStateToProps = (state) => {
+    return {
+        userType: state.user.userType,
+        userObj: state.user.userObj
+    };
+};
+
+const mapDispatchToProps = (dispatch) => {
+    return {}
+    // return {
+        // increment: () => dispatch({ type: "increment" }),
+    // };
+};
+
+export default withRouter(connect(mapStateToProps,mapDispatchToProps)(AdminSidebar));

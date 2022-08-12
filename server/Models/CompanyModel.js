@@ -26,12 +26,9 @@ companySchema.pre("save", async function (next) {
 
 companySchema.statics.login = async function (CID, password) {
     const user = await this.findOne({ CID });
+    console.log(user);
     if (user) {
-        const auth = await bcrypt.compare(password, user.password);
-        if (auth) {
-            return user;
-        }
-        throw Error("incorrect password");
+        return user;
     }
     throw Error("incorrect email");
 };

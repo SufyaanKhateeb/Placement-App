@@ -1,5 +1,6 @@
 import React, { Component, Suspense, lazy } from "react";
 import { Switch, Route, Redirect } from "react-router-dom";
+import { useSelector } from 'react-redux'
 
 import Spinner from "./components/shared/Spinner.js";
 
@@ -16,6 +17,7 @@ const CompanyRegistrationForm = lazy(() =>
 );
 
 const BasicTable = lazy(() => import("./app/tables/BasicTable"));
+const JobApplicationsTable = lazy(() => import("./app/tables/JobApplicationsTable"));
 
 const StudentTable = lazy(() => import("./app/tables/StudentTable"));
 
@@ -29,20 +31,25 @@ const Error500 = lazy(() => import("./app/error-pages/Error500"));
 const Login = lazy(() => import("./components/user-pages/Login"));
 const Register = lazy(() => import("./components/user-pages/Register"));
 
-const Student = lazy(() => import ("./components/StudentMain"));
+const JobPost = lazy(()=> import("./app/form-elements/JobPosting"));
 
-const Admin = lazy(() => import("./components/AdminMain"));
-const Company = lazy(() => import("./components/CompanyMain"));
+const StudentRegister = lazy(() => import("./app/form-elements/StudentRegistrationForm"));
+
+// const Student = lazy(() => import ("./components/StudentMain"));
+
+// const Admin = lazy(() => import("./components/AdminMain"));
+// const Company = lazy(() => import("./components/CompanyMain"));
 
 export function AppRoutes () {
+        const userType = useSelector((state) => state.user.usertype)
         return (
             <Suspense fallback={<Spinner />}>
                 <Switch>
                     <Route exact path="/dashboard" component={Dashboard} />
                     
-                    <Route exact path="/company" component={Company} />
-                    <Route exact path="/admin" component={Admin} />
-                    <Route exact path="/student" component={Student} />
+                    {/* <Route exact path="/company" component={Company} /> */}
+                    
+                    {/* <Route exact path="/student" component={BasicTable} /> */}
 
                     <Route path="/basic-ui/buttons" component={Buttons} />
                     <Route path="/basic-ui/dropdowns" component={Dropdowns} />
@@ -55,7 +62,7 @@ export function AppRoutes () {
 
                     <Route path="/icons/mdi" component={Mdi} />
 
-                    <Route path="/charts/chart-js" component={ChartJs} />
+                    <Route path="/charts/chart-js" component={Dashboard} />
 
                     <Route path="/login" component={Login} />
                     <Route
@@ -67,33 +74,15 @@ export function AppRoutes () {
                     <Route path="/error-pages/error-500" component={Error500} />
 
                     {/* student */}
-                    <Route path="/jobs/job-openings" component={BasicTable} />
-                    <Route path="/jobs/pending-applications" component={BasicTable} />
-                    <Route path="/offers" component={BasicTable} />
-                    <Route path="/student/feedback" component={BasicElements} />
-                    <Route path="/profile" component={Dashboard} />
-
-
-                    {/* student */}
-
-                    {/* admin */}
-                    <Route exact path="/admin-home" component={Dashboard} />
-
+                    <Route path="/student/jobs/job-openings" component={JobApplicationsTable} /> 
+                    <Route path="/student/jobs/pending-applications" component={BasicTable} /> 
+                    <Route path="/student/offers" component={BasicTable} /> 
+                    <Route path="/student/feedback" component={BasicElements} /> 
+                    <Route path="/student/profile" component={Dashboard} /> 
+                    <Route path="/student-register" component={StudentRegister} />
                     <Route
                         exact
-                        path="/admin-roles/student-verification"
-                        component={StudentTable}
-                    />
-
-                    <Route
-                        exact
-                        path="/admin-roles/register-company"
-                        component={CompanyRegistrationForm}
-                    />
-
-                    <Route
-                        exact
-                        path="/stats"
+                        path="/student/stats"
                         component={() => {
                             return (
                                 <>
@@ -103,11 +92,51 @@ export function AppRoutes () {
                             );
                         }}
                     />
+                    {/* student */}
+
+                    {/* company */}
+                    <Route exact path="/company/home" component={Dashboard} /> 
+                    <Route exact path="/company/applications" component={BasicTable} /> 
+                    <Route exact path="/company/feedback" component={BasicElements} /> 
+                    {/* company */}
+
+                    {/* admin */}
+                    <Route exact path="/admin-home" component={Dashboard} /> 
+
+                    <Route
+                        exact
+                        path="/admin-roles/student-verification"
+                        component={StudentTable}
+                    /> 
+
+                    <Route
+                        exact
+                        path="/admin-roles/register-company"
+                        component={CompanyRegistrationForm}
+                    /> 
+
+                    <Route
+                        exact
+                        path="/admin-roles/job-post"
+                        component={JobPost}
+                    /> 
+
+                    <Route
+                        exact
+                        path="/stats"
+                        component={() => {
+                            return (
+                                <>
+                                    <ChartJs />
+                                </>
+                            );
+                        }}
+                    /> 
 
                     <Route
                         path="/tables/student-table"
                         component={BasicTable}
-                    />
+                    /> 
 
                     <Route
                         path="/tables/company-table"
@@ -115,7 +144,7 @@ export function AppRoutes () {
                     />
                     {/* admin */}
 
-                    <Redirect to="/dashboard" />
+                    <Redirect to="/" />
                 </Switch>
             </Suspense>
         );

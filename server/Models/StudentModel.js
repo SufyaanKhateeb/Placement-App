@@ -23,6 +23,9 @@ const studentSchema = new mongoose.Schema({
     dept:{
         type: String,
         required: [true, "Password is Required"],
+    },
+    isVerified:{
+        type:Boolean,
     }
 });
 
