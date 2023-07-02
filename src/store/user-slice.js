@@ -1,22 +1,25 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+const initialState = {
+    userType: "",
+    userObj: {},
+    isVerified: false,
+};
+
 const userSlice = createSlice({
     name: "user",
-    initialState: {
-        userType: "student",
-        userObj: {},
-        isVerified: true,
-    },
+    initialState,
     reducers: {
-        login(state, action) {
+        setUserObj(state, action) {
+            state.userObj = action.payload.user;
             state.userType = action.payload.userType;
         },
-        setUserObj(state, action) {
-            state.userObj = action.payload;
+        setIsVerified(state, action) {
+            state.isVerified = action.payload;
         },
-        setisVerified(state,action){
-            state.isVerified = action.payload.isVerified;
-        }
+        reset() {
+            return initialState;
+        },
     },
 });
 

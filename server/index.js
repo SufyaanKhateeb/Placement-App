@@ -3,12 +3,11 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const authRoutes = require("./Router/authRoutes");
 const cookieParser = require("cookie-parser");
-const { MongoClient, ServerApiVersion } = require('mongodb');
-
 
 const app = express();
+require("dotenv").config();
 
-app.listen(4000, (err) => {
+app.listen(3010, (err) => {
     if (err) {
         console.log(err);
     } else {
@@ -16,25 +15,25 @@ app.listen(4000, (err) => {
     }
 });
 
-const uri = "mongodb+srv://pawan03:ch3coo-k+@cluster0.tkqqzlx.mongodb.net/?retryWrites=true&w=majority";
+const uri = process.env.MONGODB_URL;
 
 const connectionParams = {
     useNewUrlParser: true,
-    // useCreateIndex: true,
-    useUnifiedTopology: true
-}
+    useUnifiedTopology: true,
+};
 
-mongoose.connect(uri, connectionParams)
+mongoose
+    .connect(uri, connectionParams)
     .then(() => {
-        console.log('Connected to the database ')
+        console.log("Connected to the database ");
     })
     .catch((err) => {
-        console.error(`Error connecting to the database. n${err}`);
-    })
+        console.error(`Error connecting to the database. ${err}`);
+    });
 
 app.use(
     cors({
-        origin: ["http://localhost:3000"],
+        origin: `${process.env.CLIENT_URL}`,
         methods: ["GET", "POST"],
         credentials: true,
     })

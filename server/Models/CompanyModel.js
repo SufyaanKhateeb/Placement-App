@@ -2,9 +2,9 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 
 const companySchema = new mongoose.Schema({
-    CID: {
+    cid: {
         type: String,
-        required: [true, "USN is Required"],
+        required: [true, "Company ID is Required"],
         unique: true,
     },
     email: {
@@ -24,13 +24,16 @@ companySchema.pre("save", async function (next) {
     next();
 });
 
-companySchema.statics.login = async function (CID, password) {
-    const user = await this.findOne({ CID });
-    console.log(user);
+companySchema.statics.login = async function (cid, password) {
+    const user = await this.findOne({ cid });
     if (user) {
-        return user;
+        const auth = await bcrypt.compare(password, user.password);
+        if (auth) {
+            return user;
+        }
+        throw Error("Incorrect password");
     }
-    throw Error("incorrect email");
+    throw Error("incorrect Company ID");
 };
 
 module.exports = mongoose.model("Company", companySchema);

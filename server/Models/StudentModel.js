@@ -2,11 +2,11 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 
 const studentSchema = new mongoose.Schema({
-    name:{
+    name: {
         type: String,
         required: [true, "Name is Required"],
     },
-    USN: {
+    usn: {
         type: String,
         required: [true, "USN is Required"],
         unique: true,
@@ -20,36 +20,35 @@ const studentSchema = new mongoose.Schema({
         type: String,
         required: [true, "Password is Required"],
     },
-    dept:{
+    dept: {
         type: String,
-        required: [true, "Password is Required"],
+        required: [true, "Department is Required"],
     },
-    isVerified:{
-        type:Boolean,
-    }
+    isVerified: {
+        type: Boolean,
+        required: [true, "Verification field is Required"],
+    },
 });
 
 studentSchema.pre("save", async function (next) {
-    // console.log("Hello");
+    const userExists = await StudentModel.exists({ usn: this.usn });
+    if (userExists) throw new Error("User already exists");
     const salt = await bcrypt.genSalt();
     this.password = await bcrypt.hash(this.password, salt);
     next();
 });
 
-studentSchema.statics.login = async function (USN, password) {
-    const user = await this.findOne({ USN });
+studentSchema.statics.login = async function (usn, password) {
+    const user = await this.findOne({ usn });
     if (user) {
-        console.log("Found User");
-        // console.log(user);
         const auth = await bcrypt.compare(password, user.password);
-        // console.log(auth);
         if (auth) {
-            // console.log("Auth successful");
             return user;
         }
-        throw Error("Incorrect Password");
+        throw Error("Incorrect password");
     }
     throw Error("Incorrect USN");
 };
 
+const StudentModel = mongoose.model("Students", studentSchema);
 module.exports = mongoose.model("Students", studentSchema);

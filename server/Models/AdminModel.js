@@ -2,18 +2,18 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 
 const adminSchema = new mongoose.Schema({
-    AID: {
+    aid: {
         type: String,
         required: [true, "AID is Required"],
         unique: true,
     },
     name: {
         type: String,
-        required: [true, "Name cannot be empty"]
+        required: [true, "Name cannot be empty"],
     },
     dept: {
         type: String,
-        required: true
+        required: true,
     },
     email: {
         type: String,
@@ -32,11 +32,11 @@ adminSchema.pre("save", async function (next) {
     next();
 });
 
-adminSchema.statics.login = async function (AID, password) {
-    const user = await this.findOne({ AID });
+adminSchema.statics.login = async function (aid, password) {
+    const user = await this.findOne({ aid });
     if (user) {
-        // const auth = await bcrypt.compare(password, user.password);
-        if (user.password == password) {
+        const auth = await bcrypt.compare(password, user.password);
+        if (auth) {
             return user;
         }
         throw Error("Incorrect password");

@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { Link, withRouter } from 'react-router-dom';
 import { Collapse, Dropdown } from 'react-bootstrap';
-import { Trans } from 'react-i18next';
 import { connect } from 'react-redux'
 
 class CompanySidebar extends Component {
@@ -88,19 +87,19 @@ class CompanySidebar extends Component {
           {/* <li className={ this.isPathActive('/company/home') ? 'nav-item menu-items active' : 'nav-item menu-items' }>
             <Link className="nav-link" to="/company/home">
               <span className="menu-icon"><i className="mdi mdi-home-variant"></i></span>
-              <span className="menu-title"><Trans>Home</Trans></span>
+              <span className="menu-title">Home</span>
             </Link>
           </li> */}
           <li className={ this.isPathActive('/company/applications') ? 'nav-item menu-items active' : 'nav-item menu-items' }>
             <Link className="nav-link" to="/company/applications">
               <span className="menu-icon"><i className="mdi mdi-library-books"></i></span>
-              <span className="menu-title"><Trans>Applications Recieved</Trans></span>
+              <span className="menu-title">Applications Recieved</span>
             </Link>
           </li>
           <li className={ this.isPathActive('/company/feedback') ? 'nav-item menu-items active' : 'nav-item menu-items' }>
             <Link className="nav-link" to="/company/feedback">
               <span className="menu-icon"><i className="mdi mdi-clipboard-text"></i></span>
-              <span className="menu-title"><Trans>Feedback</Trans></span>
+              <span className="menu-title">Feedback</span>
             </Link>
           </li>
         </ul>

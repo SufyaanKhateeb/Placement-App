@@ -1,175 +1,249 @@
-const UserModel = require("../Models/UserModel");
 const jwt = require("jsonwebtoken");
 const StudentModel = require("../Models/StudentModel");
 const CompanyModel = require("../Models/CompanyModel");
 const AdminModel = require("../Models/AdminModel");
-const JobPostModel = require("../Models/JobPostModel")
-var MongoClient = require('mongodb').MongoClient;
-const ApplicationModel = require('../Models/ApplicationModel');
+const JobPostModel = require("../Models/JobPostModel");
+const StudentDetailsModel = require("../Models/StudentDetailsModel");
 
-const maxAge = 3*24*60*60;
+const maxAge = 3 * 24 * 60 * 60;
+const { ObjectId } = require("mongoose").Types;
 
 const createToken = (id) => {
-    console.log("Token created");
-    return jwt.sign({ id },"privateKey",{
-        expiresIn:maxAge
+    return jwt.sign({ id }, "privateKey", {
+        expiresIn: maxAge,
     });
-}
+};
 
 const handleErrors = (err) => {
-    let errors = { userType:"", ID: "", password: "" };
+    let errors = { error: "" };
 
-    // console.log(err);
-    if (err.message === "incorrect USN") {
-        errors.email = "USN not registered";
+    if (err.message === "Incorrect USN") {
+        errors.error = "USN not registered";
+    } else if (err.message === "Incorrect Admin ID") {
+        errors.error = "Admin ID not registered";
+    } else if (err.message === "Incorrect Company ID") {
+        errors.error = "Company ID not registered";
+    } else if (err.message === "Incorrect password") {
+        errors.error = "Incorrect Credentials";
+    } else if (err.message === "User already exists") {
+        errors.error = "USN already registered";
+    } else if (err.message) {
+        errors.error = err.message;
+    } else {
+        errors.error = "Something went wrong";
     }
-
-    if (err.message === "incorrect password") {
-        errors.password = "Password Incorrect";
-    }
-
-    if (err.code === 11000) {
-        errors.email = "USN already registered";
-        return errors;
-    }
-
-    if (err.message.includes("Users validation failed")) {
-        Object.values(err.errors).forEach(({ properties }) => {
-            errors[properties.path] = properties.message;
-        });
-    }
-
     return errors;
 };
 
-
-module.exports.login = async(req,res,next) => {
+module.exports.login = async (req, res, next) => {
     var user;
     try {
         const { userType, ID, password } = req.body;
-        // console.log(ID);    
-        if(userType === "student"){
+        if (userType === "student") {
             const USN = ID;
             user = await StudentModel.login(USN, password);
-            console.log("User accepted");
-        } else if (userType === "admin"){
+        } else if (userType === "admin") {
             const AID = ID;
             user = await AdminModel.login(AID, password);
-        }else{
+        } else {
             const CID = ID;
             user = await CompanyModel.login(CID, password);
         }
-        // console.log(user);
 
         const token = createToken(user._id);
-        
-        res.cookie("jwt", token, {
-            withCredentials: true,
-            httpOnly: false,
-            maxAge: maxAge * 1000,
-        });
-        res.json(user);
+
+        res.cookie(
+            "placement_app_cookies",
+            { jwt: token, userType },
+            {
+                withCredentials: true,
+                httpOnly: false,
+                maxAge: maxAge * 1000,
+            }
+        );
+        res.json({ user, created: true });
         res.status(200);
     } catch (err) {
-        // console.log(err);
         const errors = handleErrors(err);
         res.json({ errors, created: false });
     }
 };
 
+module.exports.registerAdmin = async (req, res, next) => {
+    try {
+        const { name, aid, email, password, dept, userType } = req.body;
+        const admin = await AdminModel.create({
+            name,
+            aid,
+            email,
+            password,
+            dept,
+        });
+        const token = createToken(admin._id);
+        res.cookie(
+            "placement_app_cookies",
+            { jwt: token, userType },
+            {
+                withCredentials: true,
+                httpOnly: false,
+                maxAge: maxAge * 1000,
+            }
+        );
+        res.status(201).json({ admin: admin._id, created: true });
+        next();
+    } catch (err) {
+        const errors = handleErrors(err);
+        res.json({ errors, created: false });
+    }
+};
 
 module.exports.register = async (req, res, next) => {
-    try{
-        console.log(req.body);
-        var isVerify = false;
-        const {name,USN,email,password,dept} = req.body;
-        const user = await StudentModel.create({name,USN,email,password,dept,isVerify});
-        console.log(user);
-        const token = createToken(user._id);
-        console.log("Token: ");
-        console.log(token);
-        res.cookie("jwt",token,{
-            withCredentials:true,
-            httpOnly: false,
-            maxAge: maxAge*1000,
+    try {
+        var isVerified = false;
+        const { name, usn, email, password, dept } = req.body;
+        const user = await StudentModel.create({
+            name,
+            usn,
+            email,
+            password,
+            dept,
+            isVerified,
         });
-        res.status(201).json({user:user._id,created:true});
+        const token = createToken(user._id);
+        res.cookie(
+            "placement_app_cookies",
+            { jwt: token, userType: "student" },
+            {
+                withCredentials: true,
+                httpOnly: false,
+                maxAge: maxAge * 1000,
+            }
+        );
+        res.status(201).json({ user, created: true });
         next();
-    }catch(err){
-        // console.log(err);
+    } catch (err) {
         const errors = handleErrors(err);
         res.json({ errors, created: false });
     }
 };
 
-module.exports.jobpost = async(req,res,next) =>{
-    try{
-
-        console.log(req.body);
-        var myData = new JobPostModel(req.body);
-        await myData.save()
-            .then(item => {
-                res.status(201).json({ user: myData._id, created: true });
-            })
-            .catch(err => {
-                res.status(400).json({created:false});
-            });
-        next();
-    }catch(e){
-        console.log(e);
-        res.json({e,created:false})
-    }
-}
-
-module.exports.getjobs = async(req,res,next) => {
-
-    // await MongoClient.connect('mongodb://localhost:27017/', function (err, client) {
-    //     if (err) throw err;
-    //     var db = client.db('LoginPlacement');
-    //     db.collection('jobs').find({}).toArray(function (err, result) {
-    //         if (err) {
-    //             // res.send(err);
-    //             console.log(err);
-    //         } else {
-    //             res.send(JSON.stringify(result));
-    //         }
-    //     })
+module.exports.jobpost = async (req, res, next) => {
     try {
-        const jobs = await JobPostModel.find({})
-        res.send(jobs);
-    } catch(e) {
-        res.json({e,created:false});
-    }
-// });
-    // next();
-}
-
-module.exports.getLogin = async(req,res,next) => {
-    var user;
-    try {
-        const { userType, ID, password } = req.body;
-        // console.log(ID);    
-        if(userType === "student"){
-            const USN = ID;
-            user = await StudentModel.login(USN, password);
-            console.log("User accepted");
-        } else if (userType === "admin"){
-            const AID = ID;
-            user = await AdminModel.login(AID, password);
-        }else{
-            const CID = ID;
-            user = await CompanyModel.login(CID, password);
+        const jobPost = await JobPostModel.create(req.body);
+        if (jobPost) {
+            res.status(201).json({ user: jobPost._id, created: true });
         }
-        // console.log(user)
+        // await jobPost
+        //     .save()
+        //     .then((item) => {
+        //         res.status(201).json({ user: jobPost._id, created: true });
+        //     })
+        //     .catch((err) => {
+        //         res.status(400).json({ created: false });
+        //     });
+        next();
+    } catch (e) {
+        res.json({ e, created: false });
+    }
+};
 
-        res.json(user);
-        res.status(200);
+module.exports.getjobs = async (req, res, next) => {
+    try {
+        const jobs = await JobPostModel.find({});
+        res.send(jobs);
+    } catch (e) {
+        res.json({ e, created: false });
+    }
+};
+
+module.exports.getStudentApplication = async (req, res, next) => {
+    try {
+        const _id = res.locals._id;
+        const result = await StudentDetailsModel.findOne({
+            studentId: ObjectId(_id),
+        })
+            .populate({
+                path: "studentId",
+            })
+            .exec();
+        if (!result) throw new Error("No application found");
+
+        const resultObject = result.toObject();
+
+        const application = {
+            ...resultObject.studentId,
+            ...resultObject,
+        };
+        delete application.password;
+        delete application.studentId;
+        delete application.__v;
+
+        res.json({ application, hasApplied: true });
+        next();
     } catch (err) {
-        // console.log(err);
+        const errors = handleErrors(err);
+        res.json({ errors });
+    }
+};
+
+module.exports.getStudentApplications = async (req, res, next) => {
+    try {
+        if (res.locals.userType !== "admin") throw new Error("Not authorized");
+        const result = await StudentDetailsModel.find()
+            .populate({
+                path: "studentId",
+            })
+            .exec();
+        if (!result) throw new Error();
+
+        const applications = result.map((doc) => {
+            const resultObject = doc.toObject();
+            const application = {
+                ...resultObject.studentId,
+                ...resultObject,
+            };
+            delete application.password;
+            delete application.studentId;
+            delete application.__v;
+            return application;
+        });
+
+        res.json({ applications });
+        next();
+    } catch (err) {
+        const errors = handleErrors(err);
+        res.json({ errors });
+    }
+};
+
+module.exports.postStudentApplication = async (req, res, next) => {
+    try {
+        const _id = res.locals._id;
+        const exists = await StudentDetailsModel.exists({
+            studentId: ObjectId(_id),
+        });
+
+        if (exists) {
+            await StudentDetailsModel.updateOne(
+                { studentId: ObjectId(_id) },
+                {
+                    $set: { ...req.body },
+                    $currentDate: { lastModified: true },
+                }
+            );
+        } else {
+            await StudentDetailsModel.create({
+                ...req.body,
+                studentId: ObjectId(_id),
+            });
+        }
+
+        res.json({ created: true });
+        next();
+    } catch (err) {
         const errors = handleErrors(err);
         res.json({ errors, created: false });
     }
-    next();
 };
 
 // module.exports.getVerify = async (req, res, next) => {

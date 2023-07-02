@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 
 const userSchema = new mongoose.Schema({
-    USN:{
+    usn:{
         type: String,
         required: [true,"USN is Required"],
         unique: true,
@@ -24,8 +24,8 @@ userSchema.pre("save", async function (next) {
     next();
 });
 
-userSchema.statics.login = async function (USN, password) {
-    const user = await this.findOne({ USN });
+userSchema.statics.login = async function (usn, password) {
+    const user = await this.findOne({ usn });
     if (user) {
         const auth = await bcrypt.compare(password, user.password);
         if (auth) {

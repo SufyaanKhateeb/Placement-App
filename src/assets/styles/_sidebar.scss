@@ -126,6 +126,7 @@
           font-size: $sidebar-menu-font-size;
           line-height: 1;
           vertical-align: middle;
+          white-space: normal;
         }
         .badge {
           margin-right: auto;
@@ -148,7 +149,7 @@
             top: 0;
           }
           .menu-title {
-            color: $sidebar-menu-active-color;        
+            color: $sidebar-menu-active-color;
           }
           i {
             color: #ffffff;
@@ -322,7 +323,7 @@
         font-size: 0.8125rem;
         line-height: 1;
         background: rgba($text-muted, 0.2);
-        width: 31px;
+        min-width: 31px;
         height: 31px;
         border-radius: 100%;
         display: flex;
