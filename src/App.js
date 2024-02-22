@@ -5,77 +5,60 @@ import "./App.scss";
 // import { withTranslation } from "react-i18next";
 
 import AdminMain from "./components/AdminMain";
-import StudentMain from "./components/StudentMain";
 import CompanyMain from "./components/CompanyMain";
+import StudentMain from "./components/StudentMain";
 // import { connect } from "react-redux";
-import AppRoutes from "./AppRoutes";
+import axios from "axios";
+import { Spinner } from "react-bootstrap";
+import { useDispatch, useSelector } from "react-redux";
 import { Redirect } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux";
-import { useCookies } from "react-cookie";
+import { ToastContainer, toast } from "react-toastify";
+import AppRoutes from "./AppRoutes";
 import { loginActions } from "./store/login-slice";
 import { userActions } from "./store/user-slice";
-import axios from "axios";
-import { ToastContainer, toast } from "react-toastify";
-import { Spinner } from "react-bootstrap";
 
 export default function App() {
-    const userType = useSelector((state) => state.user.userType);
-    const [isLoading, setIsLoading] = useState(true);
-    const isLoggedIn = useSelector((state) => state.login.isLoggedIn);
-    const isFullPageLayout = false;
-    const dispatch = useDispatch();
-    const [cookies] = useCookies([]);
-    useEffect(() => {
-        const getDataFromCookies = async ({ jwt, userType }) => {
-            if (jwt && userType) {
-                const { status, data } = await axios.get(
-                    `${process.env.REACT_APP_SERVER_URL}/checkUser`,
-                    {
-                        withCredentials: true,
-                    }
-                );
-                if (status) {
-                    dispatch(loginActions.login());
-                    dispatch(
-                        userActions.setUserObj({ user: data.user, userType })
-                    );
-                    toast.success("Logged in successfully", {
-                        position: "bottom-right",
-                        theme: "dark",
-                        autoClose: 1500,
-                    });
-                }
-                setIsLoading(false);
-            }
-        };
+	const userType = useSelector((state) => state.user.userType);
+	const [isLoading, setIsLoading] = useState(true);
+	const isLoggedIn = useSelector((state) => state.login.isLoggedIn);
+	const isFullPageLayout = false;
+	const dispatch = useDispatch();
 
-        if (cookies["placement_app_cookies"]) {
-            getDataFromCookies(cookies["placement_app_cookies"]);
-        } else {
-            setIsLoading(false);
-        }
-    }, []);
+	useEffect(() => {
+		const getSession = async () => {
+			try {
+				const { data } = await axios.get(`${process.env.REACT_APP_SERVER_URL}/checkUser`, {
+					withCredentials: true,
+				});
+				dispatch(loginActions.login());
+				dispatch(userActions.setUserObj({ user: data.user, userType: data.userType }));
+				toast.success("Logged in successfully", {
+					position: "bottom-right",
+					theme: "dark",
+					autoClose: 1500,
+				});
+			} catch (e) {
+				console.log(e);
+			}
+			setIsLoading(false);
+		};
 
-    if (isLoading) return <Spinner animation="border" variant="light" />;
+		getSession();
+	}, [dispatch]);
 
-    return isLoggedIn ? (
-        <>
-            {userType === "admin" && (
-                <AdminMain isFullPageLayout={isFullPageLayout} />
-            )}
-            {userType === "student" && (
-                <StudentMain isFullPageLayout={isFullPageLayout} />
-            )}
-            {userType === "company" && (
-                <CompanyMain isFullPageLayout={isFullPageLayout} />
-            )}
-        </>
-    ) : (
-        <>
-            <AppRoutes />
-            <Redirect to="/login" />
-        </>
-    );
+	if (isLoading) return <Spinner animation="border" variant="light" />;
+
+	return isLoggedIn ? (
+		<>
+			{userType === "admin" && <AdminMain isFullPageLayout={isFullPageLayout} />}
+			{userType === "student" && <StudentMain isFullPageLayout={isFullPageLayout} />}
+			{userType === "company" && <CompanyMain isFullPageLayout={isFullPageLayout} />}
+		</>
+	) : (
+		<>
+			<AppRoutes />
+		</>
+	);
 }
 
 // class App extends Component {

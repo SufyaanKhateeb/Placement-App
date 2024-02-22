@@ -22,7 +22,7 @@ export default function Error404() {
                             <div className="col-12 text-center mt-xl-2">
                                 <Link
                                     className="text-white font-weight-medium"
-                                    to="/dashboard"
+                                    to="/"
                                 >
                                     Back to home
                                 </Link>
