@@ -1,20 +1,5 @@
-const {
-    register,
-    registerAdmin,
-    login,
-    jobpost,
-    getjobs,
-    getStudentApplication,
-    postStudentApplication,
-    getStudentApplications,
-} = require("../Controllers/AuthController");
-const {
-    checkAdmin,
-    checkCompany,
-    checkStudent,
-    checkUser,
-    checkAuthorized,
-} = require("../Middleware/authMiddleware");
+const { register, registerAdmin, login, jobpost, getjobs, getStudentApplication, postStudentApplication, getStudentApplications, logout } = require("../Controllers/AuthController");
+const { checkAdmin, checkCompany, checkStudent, checkUser, checkAuthorized } = require("../Middleware/authMiddleware");
 
 const router = require("express").Router();
 
@@ -28,6 +13,7 @@ router.get("/student-applications", checkAuthorized, getStudentApplications);
 router.post("/student-application", checkAuthorized, postStudentApplication);
 router.post("/register/admin", registerAdmin);
 router.post("/login", login);
+router.post("/logout", logout);
 router.post("/jobpost", jobpost);
 router.get("/getjobs", getjobs);
 
