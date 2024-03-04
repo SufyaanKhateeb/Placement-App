@@ -2,6 +2,7 @@ const Student = require("../Models/StudentModel");
 const Admin = require("../Models/AdminModel");
 const Company = require("../Models/CompanyModel");
 const jwt = require("jsonwebtoken");
+const { userTypes } = require("../Controllers/constants");
 
 module.exports.checkStudent = (req, res, next) => {
 	const token = req.cookies["placement_app_cookies"].jwt;
@@ -65,16 +66,16 @@ module.exports.checkCompany = (req, res, next) => {
 
 module.exports.checkUser = (req, res, next) => {
 	const token = req.cookies["placement_app_cookies"] && req.cookies["placement_app_cookies"].jwt;
-	const userType = req.cookies["placement_app_cookies"] && req.cookies["placement_app_cookies"].userType;
-	if (token && userType) {
+	if (token) {
 		jwt.verify(token, process.env["SECRET_KEY"], async (err, decodedToken) => {
 			if (err) {
 				next(err);
 			} else {
+				const userType = decodedToken.userType;
 				let user;
-				if (userType === "student") {
+				if (userType === userTypes.student) {
 					user = await Student.findById(decodedToken.id);
-				} else if (userType === "admin") {
+				} else if (userType === userTypes.admin) {
 					user = await Admin.findById(decodedToken.id);
 				} else {
 					user = await Company.findById(decodedToken.id);
@@ -105,17 +106,17 @@ module.exports.checkUser = (req, res, next) => {
 
 module.exports.checkAuthorized = (req, res, next) => {
 	const token = req.cookies["placement_app_cookies"] && req.cookies["placement_app_cookies"].jwt;
-	const userType = req.cookies["placement_app_cookies"] && req.cookies["placement_app_cookies"].userType;
-	if (token && userType) {
+	if (token) {
 		jwt.verify(token, process.env["SECRET_KEY"], async (err, decodedToken) => {
 			if (err) {
 				res.json({ status: false });
 				next();
 			} else {
+				const userType = decodedToken.userType;
 				let exists;
-				if (userType === "student") {
+				if (userType === userTypes.student) {
 					exists = await Student.exists({ _id: decodedToken.id });
-				} else if (userType === "admin") {
+				} else if (userType === userTypes.admin) {
 					exists = await Admin.exists({ _id: decodedToken.id });
 				} else {
 					exists = await Company.exists({ _id: decodedToken.id });
@@ -129,7 +130,7 @@ module.exports.checkAuthorized = (req, res, next) => {
 			}
 		});
 	} else {
-        res.status(401);
+		res.status(401);
 		res.json({ status: false });
 		next();
 	}

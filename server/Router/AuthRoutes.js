@@ -1,4 +1,6 @@
-const { register, registerAdmin, login, jobpost, getjobs, getStudentApplication, postStudentApplication, getStudentApplications, logout } = require("../Controllers/AuthController");
+const { register, registerAdmin, login, logout } = require("../Controllers/AuthController");
+const { jobpost, getjobs } = require("../Controllers/JobPostsController");
+const { getStudentRegistrationFormComments, getStudentApplication, getStudentApplications, postStudentApplication, addStudentRegistrationFormComment } = require("../Controllers/RegistrationController");
 const { checkAdmin, checkCompany, checkStudent, checkUser, checkAuthorized } = require("../Middleware/authMiddleware");
 
 const router = require("express").Router();
@@ -16,5 +18,7 @@ router.post("/login", login);
 router.post("/logout", logout);
 router.post("/jobpost", jobpost);
 router.get("/getjobs", getjobs);
+router.get("/application-comments", checkAuthorized, getStudentRegistrationFormComments);
+router.put("/application-comment", checkAuthorized, addStudentRegistrationFormComment);
 
 module.exports = router;
