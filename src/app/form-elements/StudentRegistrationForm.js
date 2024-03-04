@@ -1,12 +1,30 @@
-import React, { useEffect, useState } from "react";
 import axios from "axios";
+import React, { useEffect, useState } from "react";
+import { Spinner } from "react-bootstrap";
 import { useDispatch } from "react-redux";
 import { userActions } from "../../store/user-slice";
-import { Spinner } from "react-bootstrap";
 import ApplicationForm from "./ApplicationForm";
 import VerficationPendingForm from "./VerificationPendingForm";
 
-const refNames = ["fatherName", "motherName", "email", "alternateEmail", "phone", "alternatePhone", "gender", "dob", "diploma", "nationality", "address", "state", "city", "country", "pincode", "cgpa", "backlogs"];
+const refNames = [
+	"fatherName",
+	"motherName",
+	"email",
+	"alternateEmail",
+	"phone",
+	"alternatePhone",
+	"gender",
+	"dob",
+	"diploma",
+	"nationality",
+	"address",
+	"state",
+	"city",
+	"country",
+	"pincode",
+	"cgpa",
+	"backlogs",
+];
 
 export default function StudentRegister() {
 	const [hasApplied, setHasApplied] = useState(false);
@@ -23,8 +41,8 @@ export default function StudentRegister() {
 				});
 				setIsLoading(false);
 				if (data) {
-					if (data.hasApplied) {
-						setHasApplied(data.hasApplied);
+					if (data.application) {
+						setHasApplied(true);
 						const temp = {};
 						for (let refName of refNames) {
 							let value = data.application[refName];
@@ -44,9 +62,31 @@ export default function StudentRegister() {
 			}
 		};
 		fetchApplicationDetails();
-	}, [hasApplied, setIsLoading]);
+	}, [dispatch, setIsLoading]);
 
 	if (isLoading) return <Spinner animation="border" variant="light" />;
 
-	return hasApplied ? isEditing ? <ApplicationForm refNames={refNames} setHasApplied={setHasApplied} isEditing={isEditing} setIsEditing={setIsEditing} values={values} setValues={setValues} /> : <VerficationPendingForm setIsEditing={setIsEditing} values={values} /> : <ApplicationForm refNames={refNames} setHasApplied={setHasApplied} isEditing={isEditing} setIsEditing={setIsEditing} values={values} setValues={setValues} />;
+	return hasApplied ? (
+		isEditing ? (
+			<ApplicationForm
+				refNames={refNames}
+				setHasApplied={setHasApplied}
+				isEditing={isEditing}
+				setIsEditing={setIsEditing}
+				values={values}
+				setValues={setValues}
+			/>
+		) : (
+			<VerficationPendingForm setIsEditing={setIsEditing} values={values} />
+		)
+	) : (
+		<ApplicationForm
+			refNames={refNames}
+			setHasApplied={setHasApplied}
+			isEditing={isEditing}
+			setIsEditing={setIsEditing}
+			values={values}
+			setValues={setValues}
+		/>
+	);
 }

@@ -92,7 +92,9 @@ export default function Login() {
 
 							<div className="d-flex justify-content-between">
 								<button
-									className="btn btn-sm font-weight-medium  mx-1 btn-inverse-primary"
+									className={`btn btn-sm font-weight-medium mx-1 btn-inverse-primary${
+										values.userType === "student" ? " active" : ""
+									}`}
 									name="student"
 									value="student"
 									onClick={(e) => {
@@ -107,7 +109,9 @@ export default function Login() {
 									Student
 								</button>
 								<button
-									className="btn btn-md font-weight-medium mx-1 btn-inverse-danger"
+									className={`btn btn-sm font-weight-medium mx-1 btn-inverse-danger${
+										values.userType === "admin" ? " active" : ""
+									}`}
 									name="admin"
 									value="admin"
 									onClick={(e) => {
@@ -122,7 +126,9 @@ export default function Login() {
 									Admin
 								</button>
 								<button
-									className="btn btn-md font-weight-medium  mx-1 btn-inverse-info"
+									className={`btn btn-sm font-weight-medium mx-1 btn-inverse-info${
+										values.userType === "company" ? " active" : ""
+									}`}
 									name="company"
 									value="company"
 									onClick={(e) => {
@@ -139,10 +145,25 @@ export default function Login() {
 
 							<Form className="pt-3" onSubmit={(e) => handleSubmit(e)}>
 								<Form.Group className="d-flex search-field">
-									<Form.Control type="text" name="ID" placeholder={id} size="lg" className="h-auto" onChange={(e) => handleChange(e)} />
+									<Form.Control
+										type="text"
+										name="ID"
+										placeholder={id}
+										size="lg"
+										className="h-auto"
+										onChange={(e) => handleChange(e)}
+									/>
 								</Form.Group>
 								<Form.Group className="d-flex search-field">
-									<Form.Control type="password" placeholder="Password" size="lg" className="h-auto" name="password" required onChange={(e) => handleChange(e)} />
+									<Form.Control
+										type="password"
+										placeholder="Password"
+										size="lg"
+										className="h-auto"
+										name="password"
+										required
+										onChange={(e) => handleChange(e)}
+									/>
 								</Form.Group>
 								<div className="mt-3">
 									<button type="submit" className="btn btn-block btn-primary btn-lg font-weight-medium ">

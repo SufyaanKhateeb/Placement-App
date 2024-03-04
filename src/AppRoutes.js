@@ -95,7 +95,8 @@ export function AppRoutes() {
 				{/* company */}
 
 				{/* admin */}
-				<Route exact path="/admin-home" component={adminLoggedIn ? Dashboard : Error404} />
+				{/* <Route exact path="/admin-home" component={adminLoggedIn ? Dashboard : Error404} /> */}
+				<Route exact path="/admin-home" component={adminLoggedIn ? StudentTable : Error404} />
 				<Route exact path="/admin-roles/student-verification" component={adminLoggedIn ? StudentTable : Error404} />
 				<Route exact path="/admin-roles/register-company" component={adminLoggedIn ? CompanyRegistrationForm : Error404} />
 				<Route exact path="/admin-roles/job-post" component={adminLoggedIn ? JobPost : Error404} />

@@ -1,0 +1,35 @@
+.studentDialog {
+	height: calc(100vh - 100px);
+	.modalBody {
+		display: flex;
+		flex-direction: column;
+		overflow-y: auto;
+	}
+	.studentInfo {
+		height: 400px;
+		overflow-y: auto;
+	}
+	.commentsContainer {
+		display: flex;
+		flex-direction: column;
+		margin: 10px 0px;
+		overflow-y: auto;
+		height: 100%;
+	}
+	.commentCard {
+		padding: 10px;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 10px;
+	}
+	.commentBoxText {
+		width: 100%;
+		resize: vertical;
+	}
+	.submitButton {
+		height: 24px;
+		width: 24px;
+		align-self: flex-end;
+	}
+}
