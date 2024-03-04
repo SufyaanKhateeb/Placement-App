@@ -1,1 +1,2 @@
 # Placement-App
+The College Placement Management System is a comprehensive web-based application tailored to streamline and enhance the entire process of managing placement activities within a college or university. This application serves as a centralized platform where students, faculty, recruiters, and placement coordinators can seamlessly interact, facilitating efficient communication and organization of placement-related tasks.
