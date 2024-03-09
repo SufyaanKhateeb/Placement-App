@@ -1,7 +1,7 @@
-// const StudentModel = require("../Models/StudentModel");
 // const AdminModel = require("../Models/AdminModel");
 const StudentDetailsModel = require("../Models/StudentDetailsModel");
-const { userTypes } = require("./constants");
+const StudentModel = require("../Models/StudentModel");
+const { userTypes, registrationStatus } = require("./constants");
 
 const { ObjectId } = require("mongoose").Types;
 
@@ -37,12 +37,12 @@ module.exports.getStudentApplication = async (req, res, next) => {
 		const application = {
 			...resultObject.studentId,
 			...resultObject,
+			studentId: resultObject.studentId._id,
 			comments,
 		};
 		delete application.adminComments;
 		delete application.studentComments;
 		delete application.password;
-		delete application.studentId;
 		delete application.__v;
 
 		res.json({ application });
@@ -72,13 +72,15 @@ module.exports.getStudentApplications = async (req, res, next) => {
 			const application = {
 				...resultObject.studentId,
 				...resultObject,
+				studentId: resultObject.studentId._id,
 				comments,
 			};
+
 			delete application.adminComments;
 			delete application.studentComments;
 			delete application.password;
-			delete application.studentId;
 			delete application.__v;
+
 			return application;
 		});
 
@@ -88,26 +90,53 @@ module.exports.getStudentApplications = async (req, res, next) => {
 		const errors = handleErrors(err);
 		res.json({ errors });
 	}
-};
+}
+
+const refNames = [
+	"fatherName",
+	"motherName",
+	"email",
+	"alternateEmail",
+	"phone",
+	"alternatePhone",
+	"gender",
+	"dob",
+	"diploma",
+	"nationality",
+	"address",
+	"state",
+	"city",
+	"country",
+	"pincode",
+	"cgpa",
+	"backlogs",
+];;
 
 module.exports.postStudentApplication = async (req, res, next) => {
 	try {
+		if (res.locals.userType !== userTypes.admin && res.locals.userType !== userTypes.student) throw new Error("Not authorized");
 		const _id = res.locals._id;
 		const exists = await StudentDetailsModel.exists({
 			studentId: ObjectId(_id),
 		});
 
+		const application = {};
+		for(const ref of refNames) {
+			if(!req.body[ref]) throw new Error(`${ref} is required`);
+			application[ref] = req.body[ref];
+		}
+
 		if (exists) {
 			await StudentDetailsModel.updateOne(
 				{ studentId: ObjectId(_id) },
 				{
-					$set: { ...req.body },
+					$set: application,
 					$currentDate: { lastModified: true },
 				}
 			);
 		} else {
 			await StudentDetailsModel.create({
-				...req.body,
+				...application,
 				studentId: ObjectId(_id),
 			});
 		}
@@ -208,7 +237,7 @@ const matchAuthorIdsOptions = [
 	},
 ];
 
-module.exports.getStudentRegistrationFormComments = async (req, res, next) => {
+module.exports.getStudentApplicationFormComments = async (req, res, next) => {
 	try {
 		if (res.locals.userType !== userTypes.admin && res.locals.userType !== userTypes.student) throw new Error("Not authorized");
 
@@ -216,7 +245,7 @@ module.exports.getStudentRegistrationFormComments = async (req, res, next) => {
 		if (!studentId) throw new Error("Provide student id");
 
 		const studentDetails = await StudentDetailsModel.aggregate([
-			{ $match: { _id: ObjectId(studentId) } }, // Filter by studentId
+			{ $match: { studentId: ObjectId(studentId) } }, // Filter by studentId
 			...matchAuthorIdsOptions,
 		]);
 
@@ -233,7 +262,7 @@ module.exports.getStudentRegistrationFormComments = async (req, res, next) => {
 	}
 };
 
-module.exports.addStudentRegistrationFormComment = async (req, res, next) => {
+module.exports.addStudentApplicationFormComment = async (req, res, next) => {
 	try {
 		if (res.locals.userType !== userTypes.admin && res.locals.userType !== userTypes.student) throw new Error("Not authorized");
 
@@ -284,5 +313,56 @@ module.exports.addStudentRegistrationFormComment = async (req, res, next) => {
 	} catch (error) {
 		console.error(error);
 		res.status(500).json({ message: "Internal server error" });
+	}
+};
+
+module.exports.updateApplicationStatus = async (req, res, next) => {
+	try {
+		if (res.locals.userType !== userTypes.admin) throw new Error("Not authorized");
+
+		const applications = req && req.body && req.body.applications;
+		if (!applications) throw new Error("Provide a list of applications with id and status to set");
+		applications.forEach((application) => {
+			const { id: applicationId, status: newStatus } = application;
+			if (!applicationId) throw new Error("Provide application id with all applications");
+			if (!newStatus) throw new Error("Provide updated status with all applications");
+
+			if (newStatus !== registrationStatus.approved && newStatus !== registrationStatus.rejected && newStatus !== registrationStatus.pending) {
+				throw new Error("Invalid status. Status can only be one of ['Pending', 'Approved', 'Rejected']");
+			}
+		});
+
+		const updatedApplications = [];
+
+		for (const application of applications) {
+			const { id: applicationId, status: newStatus } = application;
+
+			const updatedStudentDetails = await StudentDetailsModel.findOneAndUpdate(
+				{ _id: applicationId },
+				{
+					$set: { status: newStatus },
+				}
+			);
+
+			if (!updatedStudentDetails) throw new Error("Invalid id");
+
+			const updatedStudent = await StudentModel.findByIdAndUpdate(ObjectId(updatedStudentDetails.studentId), {
+				$set: { isVerified: newStatus === registrationStatus.approved ? true : false },
+			});
+
+			if (!updatedStudent) throw new Error();
+
+			if (updatedStudent && updatedStudentDetails) {
+				updatedApplications.push({
+					_id: applicationId,
+					status: newStatus,
+				});
+			}
+		}
+
+		return res.json({ applications: updatedApplications });
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({ message: "Internal server error", err: error });
 	}
 };
