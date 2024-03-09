@@ -1,10 +1,11 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
 import Card from "react-bootstrap/Card";
 import "./StudentModal.scss";
 import axios from "axios";
+import { getApplicationComments, getPolling } from "../../store/student-resources";
 
 const StudentModal = (props) => {
 	const { showStudentModal, studentModalInfo, onClose } = props;
@@ -29,6 +30,7 @@ const StudentModal = (props) => {
 			);
 			if (data?.updatedStudentDetails?.comments) setComments(data.updatedStudentDetails.comments);
 			inputRef.current.value = "";
+			inputRef.current.focus();
 			setLoading(false);
 		} catch (err) {
 			console.log(err);
@@ -42,28 +44,20 @@ const StudentModal = (props) => {
 		}
 	};
 
-	const getComments = useCallback(async () => {
-		try {
-			setLoading(true);
-			const { data } = await axios.get(`${process.env.REACT_APP_SERVER_URL}/application-comments`, {
-				withCredentials: true,
-				params: {
-					studentId: studentModalInfo._id,
-				},
-			});
-			setComments(data.comments);
-			setLoading(false);
-		} catch (err) {
-			console.log(err);
-			setLoading(false);
-		}
-	}, [studentModalInfo]);
+	const pollComments = getPolling(
+		getApplicationComments,
+		(data) => {
+			if (data.comments) setComments(data.comments);
+		},
+		{ delay: 2000 }
+	);
 
 	useEffect(() => {
-		if (showStudentModal) {
-			getComments();
+		if (showStudentModal && studentModalInfo.studentId) {
+			pollComments.start(studentModalInfo.studentId);
 		}
-	}, [showStudentModal, getComments]);
+		return () => pollComments.stop();
+	}, [showStudentModal]);
 
 	useEffect(() => {
 		// Scroll to the last comment when the component mounts or when new comments are added
@@ -101,7 +95,7 @@ const StudentModal = (props) => {
 					<h4 style={{ padding: "0px 4px" }}>Comments</h4>
 					<div style={{ display: "flex", flexDirection: "column", overflowY: "auto", gap: 5 }}>
 						{loading && "Loading..."}
-                        {!comments.length && <p>No comments ☁️</p>}
+						{!comments.length && <p>No comments ☁️</p>}
 						{comments.map((c, ind) => {
 							return (
 								<Card id={c._id} ref={ind === comments.length - 1 ? lastCommentRef : null}>

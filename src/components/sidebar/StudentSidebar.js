@@ -457,6 +457,7 @@ const mapStateToProps = (state) => {
         userType: state.user.userType,
         userObj: state.user.userObj,
         isVerified: state.user.isVerified,
+        applicationStatus: state.applications.currentStudentApplication.status || '',
     };
 };
 

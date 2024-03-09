@@ -1,89 +1,103 @@
-import React, { useEffect, useState } from "react";
-import { ProgressBar } from "react-bootstrap";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import Dropdown from "react-bootstrap/Dropdown";
+import OverlayTrigger from "react-bootstrap/OverlayTrigger";
+import Tooltip from "react-bootstrap/Tooltip";
 import Button from "react-bootstrap/Button";
 import StudentModal from "./StudentModal";
 import axios from "axios";
 
 import face1 from "../../assets/images/faces/face1.jpg";
-import face2 from "../../assets/images/faces/face2.jpg";
-import face3 from "../../assets/images/faces/face3.jpg";
-import face4 from "../../assets/images/faces/face4.jpg";
-import face5 from "../../assets/images/faces/face5.jpg";
-import face6 from "../../assets/images/faces/face6.jpg";
-import face7 from "../../assets/images/faces/face7.jpg";
-import face8 from "../../assets/images/faces/face8.jpg";
-import face9 from "../../assets/images/faces/face9.jpg";
+import { applicationActions } from "../../store/applications-slice";
+// import { ProgressBar } from "react-bootstrap";
+// import face2 from "../../assets/images/faces/face2.jpg";
+// import face3 from "../../assets/images/faces/face3.jpg";
+// import face4 from "../../assets/images/faces/face4.jpg";
+// import face5 from "../../assets/images/faces/face5.jpg";
+// import face6 from "../../assets/images/faces/face6.jpg";
+// import face7 from "../../assets/images/faces/face7.jpg";
+// import face8 from "../../assets/images/faces/face8.jpg";
+// import face9 from "../../assets/images/faces/face9.jpg";
+
+const getFormatedDateTime = (dateString) => {
+  const date = new Date(dateString);
+	// Format the date components
+	const year = date.getFullYear();
+	const month = (date.getMonth() + 1).toString().padStart(2, "0"); // Months are zero-based
+	const day = date.getDate().toString().padStart(2, "0");
+	const hours = date.getHours().toString().padStart(2, "0");
+	const minutes = date.getMinutes().toString().padStart(2, "0");
+	const seconds = date.getSeconds().toString().padStart(2, "0");
+
+	// Construct the human-readable date and time
+	const humanReadableDateTime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+	return humanReadableDateTime;
+};
 
 const StudentTable = () => {
-	const [data, setData] = useState([
-		{
-			usn: "123",
-			name: "Henry Klein",
-			date: "04 Dec 2019",
-			status: "Pending",
-			tempStatus: "Pending",
-			img: face1,
-		},
-	]);
+	const data = useSelector((state) => state.applications.studentRegistrationApplications);
+	const dispatch = useDispatch();
+
 	const [loading, setLoading] = useState(true);
 	const [showStudentModal, setShowStudentModal] = useState(false);
 	const [studentModalInfo, setStudentModalInfo] = useState(null);
 
 	const approveApplication = (usn) => {
-		const userIndex = data.findIndex((element) => element.usn === usn);
-		if (userIndex !== -1) {
-			setData((prevData) => {
-				let newData = [...prevData];
-				newData[userIndex].tempStatus = "Approved";
-				return newData;
-			});
-		}
+		dispatch(applicationActions.updateTempStatus({ usn, tempStatus: "approved" }));
 	};
 	const rejectApplication = (usn) => {
-		const userIndex = data.findIndex((element) => element.usn === usn);
-		if (userIndex !== -1) {
-			setData((prevData) => {
-				let newData = [...prevData];
-				newData[userIndex].tempStatus = "Rejected";
-				return newData;
-			});
-		}
+		dispatch(applicationActions.updateTempStatus({ usn, tempStatus: "rejected" }));
 	};
 	const pendingApplication = (usn) => {
-		const userIndex = data.findIndex((element) => element.usn === usn);
-		if (userIndex !== -1) {
-			setData((prevData) => {
-				let newData = [...prevData];
-				newData[userIndex].tempStatus = "Pending";
-				return newData;
-			});
-		}
+		dispatch(applicationActions.updateTempStatus({ usn, tempStatus: "pending" }));
 	};
 
-	const finalize = (usn) => {
+	const finalize = async (usn) => {
 		const userIndex = data.findIndex((element) => element.usn === usn);
 		if (userIndex !== -1) {
-			if (data[userIndex].tempStatus === "Approved" || data[userIndex].tempStatus === "Rejected") {
-				setData((prevData) => {
-					let newData = [...prevData];
-					newData[userIndex].status = newData[userIndex].tempStatus;
-					return newData;
-				});
+			const userDetails = data[userIndex];
+			if (userDetails.tempStatus === "approved" || userDetails.tempStatus === "rejected") {
+				try {
+					const { data } = await axios.put(
+						`${process.env.REACT_APP_SERVER_URL}/student-applications`,
+						{
+							applications: [
+								{
+									id: userDetails._id,
+									status: userDetails.tempStatus,
+								},
+							],
+						},
+						{
+							withCredentials: true,
+						}
+					);
+					getApplicationsData();
+				} catch (err) {
+					console.log(err);
+				}
 			}
 		}
 	};
 
-	const finalizeAll = () => {
-		const isAllFinalizable = data.every((userData) => userData.tempStatus !== "Pending");
-		if (isAllFinalizable) {
-			setData((prevData) => {
-				const newData = prevData.map((userData) => {
-					userData.status = userData.tempStatus;
-					return userData;
-				});
-				return newData;
-			});
+	const finalizeAll = async () => {
+		const details = data.filter((u) => u.status === "pending" && u.tempStatus !== "pending");
+		try {
+			const { data } = await axios.put(
+				`${process.env.REACT_APP_SERVER_URL}/student-applications`,
+				{
+					applications: details.map((applicationDetails) => ({
+						id: applicationDetails._id,
+						status: applicationDetails.tempStatus,
+					})),
+				},
+				{
+					withCredentials: true,
+				}
+			);
+			getApplicationsData();
+		} catch (err) {
+			console.log(err);
 		}
 	};
 
@@ -97,37 +111,48 @@ const StudentTable = () => {
 		setStudentModalInfo(null);
 	};
 
-	useEffect(() => {
-		const fetchData = async () => {
+	const getApplicationsData = useCallback(
+		async (initial = false) => {
 			try {
+				if (initial) {
+					setLoading(true);
+				}
 				const { data } = await axios.get(`${process.env.REACT_APP_SERVER_URL}/student-applications`, {
 					withCredentials: true,
 				});
-				// const res = await axios.get(`${process.env.REACT_APP_SERVER_URL}/application-comments`,{
-                //     params: {
-                //         studentId: data.applications[0]._id,
-                //     },
-                //     withCredentials: true,
-                // });
 				if (data && data?.applications) {
 					const applications = data.applications;
-					setData(
-						applications.map((application) => {
-							return {
-								...application,
-								status: application?.isVerified ? "Approved" : "Pending",
-							};
+					dispatch(
+						applicationActions.setStudentApplications({
+							applications: applications.map((application) => {
+								return {
+									...application,
+									img: face1,
+									status: application?.status,
+									tempStatus: application?.status,
+								};
+							}),
 						})
 					);
 				}
 				setLoading(false);
 			} catch (err) {
 				console.log(err);
+				setLoading(false);
 			}
-		};
-		setLoading(true);
-		fetchData();
-	}, []);
+		},
+		[dispatch]
+	);
+
+	useEffect(() => {
+		getApplicationsData(true);
+	}, [getApplicationsData]);
+
+	const finalizeAllActive = useMemo(
+		() => !data.filter((u) => u.status === "pending").some((userData) => userData.tempStatus !== "pending"),
+		[data]
+	);
+	const finalizeAllRef = useRef();
 
 	if (loading) return <>Loading...</>;
 
@@ -147,26 +172,36 @@ const StudentTable = () => {
 								}}
 							>
 								<h4 className="card-title">Pending Verifications</h4>
-								<Button
-									style={{
-										width: "16%",
-										marginRight: "25px",
-									}}
-									variant="success"
-									className="badge badge-success"
-									size="lg"
-                                    disabled={data.every((userData) => userData.tempStatus !== "Pending")}
-									onClick={finalizeAll}
+								<OverlayTrigger
+									placement="bottom"
+									overlay={(props) => (
+										<Tooltip id="overlay-example" {...props}>
+											Finalize all applications that are not pending
+										</Tooltip>
+									)}
 								>
-									Finalize All
-								</Button>
+									<Button
+										ref={finalizeAllRef}
+										style={{
+											width: "16%",
+											marginRight: "25px",
+										}}
+										variant="success"
+										className="badge badge-success"
+										size="lg"
+										disabled={finalizeAllActive}
+										onClick={finalizeAll}
+									>
+										Finalize All
+									</Button>
+								</OverlayTrigger>
 							</div>
 							<table className="table table-hover">
 								<thead>
 									<tr>
 										<th> USN </th>
 										<th> Name </th>
-										<th> Application Date</th>
+										<th> Last update Date</th>
 										<th> Status </th>
 										<th> Set Status </th>
 										<th> Finalize </th>
@@ -174,23 +209,23 @@ const StudentTable = () => {
 								</thead>
 								<tbody>
 									{data
-										.filter((u) => u.status === "Pending")
+										.filter((u) => u.status === "pending")
 										.map((userData) => {
 											return (
 												<tr key={userData.usn}>
-													<td>{userData.usn}</td>
+													<td>{userData.usn?.slice(-3)}</td>
 													<td>
-														<div className="d-flex" onClick={onShowStudentModal.bind(this, userData)}>
+														<div className="d-flex align-items-center" onClick={onShowStudentModal.bind(this, userData)}>
 															<img src={userData.img} alt="face" />
 															<span className="pl-2">{userData.name}</span>
 														</div>
 													</td>
-													<td>{userData.date}</td>
+													<td>{getFormatedDateTime(userData.updatedAt)}</td>
 													<td>
 														<div
-															className={`badge badge-outline-${userData.tempStatus === "Pending" ? "warning" : ""}${
-																userData.tempStatus === "Approved" ? "success" : ""
-															}${userData.tempStatus === "Rejected" ? "danger" : ""}`}
+															className={`badge badge-outline-${userData.tempStatus === "pending" ? "warning" : ""}${
+																userData.tempStatus === "approved" ? "success" : ""
+															}${userData.tempStatus === "rejected" ? "danger" : ""}`}
 														>
 															{userData.tempStatus}
 														</div>
@@ -215,7 +250,11 @@ const StudentTable = () => {
 														</Dropdown>
 													</td>
 													<td>
-														<Button variant="success" onClick={finalize.bind(this, userData.usn)}>
+														<Button
+															variant="success"
+															disabled={userData.tempStatus === "pending"}
+															onClick={finalize.bind(this, userData.usn)}
+														>
 															Finalize
 														</Button>
 													</td>
@@ -225,10 +264,8 @@ const StudentTable = () => {
 								</tbody>
 							</table>
 						</div>
-						{data.every((userData) => userData.status !== "Pending") ? (
+						{data.every((userData) => userData.status !== "pending") && (
 							<span style={{ margin: "auto auto 25px auto" }}>No Pending Application</span>
-						) : (
-							""
 						)}
 					</div>
 				</div>
@@ -246,19 +283,19 @@ const StudentTable = () => {
 								<tr>
 									<th>USN</th>
 									<th>Name</th>
-									<th>Application Date</th>
+									<th>Last update Date</th>
 									<th>Status</th>
 								</tr>
 							</thead>
 							<tbody>
 								{data
-									.filter((u) => u.status === "Approved")
+									.filter((u) => u.status === "approved")
 									.map((userData) => {
 										return (
 											<tr key={userData.usn}>
 												<td>{userData.usn}</td>
 												<td>{userData.name}</td>
-												<td>{userData.date}</td>
+												<td>{getFormatedDateTime(userData.updatedAt)}</td>
 												<td>
 													<label className="badge badge-success">Approved</label>
 												</td>
@@ -268,10 +305,8 @@ const StudentTable = () => {
 							</tbody>
 						</table>
 					</div>
-					{data.every((userData) => userData.status !== "Approved") ? (
+					{data.every((userData) => userData.status !== "approved") && (
 						<span style={{ margin: "auto auto 25px auto" }}>No Approved Application</span>
-					) : (
-						""
 					)}
 				</div>
 			</div>
@@ -289,19 +324,19 @@ const StudentTable = () => {
 									<tr>
 										<th>USN</th>
 										<th>Name</th>
-										<th>Application Date</th>
+										<th>Last update Date</th>
 										<th>Status</th>
 									</tr>
 								</thead>
 								<tbody>
 									{data
-										.filter((u) => u.status === "Rejected")
+										.filter((u) => u.status === "rejected")
 										.map((userData) => {
 											return (
 												<tr key={userData.usn}>
 													<td>{userData.usn}</td>
 													<td>{userData.name}</td>
-													<td>{userData.date}</td>
+													<td>{getFormatedDateTime(userData.updatedAt)}</td>
 													<td>
 														<label className="badge badge-danger">Rejected</label>
 													</td>
@@ -312,10 +347,8 @@ const StudentTable = () => {
 							</table>
 						</div>
 					</div>
-					{data.every((userData) => userData.status !== "Rejected") ? (
+					{data.every((userData) => userData.status !== "rejected") && (
 						<span style={{ margin: "auto auto 25px auto" }}>No Rejected Application</span>
-					) : (
-						""
 					)}
 				</div>
 			</div>
